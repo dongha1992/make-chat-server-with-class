@@ -1,104 +1,111 @@
 class Chat {
-	#password = null;
-	constructor() {
-		this.roomList = [];
-	}
+  #password = null;
+  constructor() {
+    this.roomList = [];
+  }
 
-	createRoom(user) {
-		if (user.isAdmin) {
-			return console.log('이미 다른 방을 생성하셨습니다.');
-		}
+  createRoom(user) {
+    if (user.isAdmin) {
+      return console.log('이미 다른 방을 생성하셨습니다.');
+    }
 
-		user.isAdmin = true;
-		const roomInformation = {
-			roomId: this.roomList.length + 1,
-			admin: user,
-			joinedUserList: [],
-			messageList: [],
-			isPrivate: false,
-		};
+    user.isAdmin = true;
+    const roomInformation = {
+      roomId: this.roomList.length + 1,
+      admin: user,
+      joinedUserList: [],
+      messageList: [],
+      isPrivate: false,
+    };
 
-		this.roomList = [...this.roomList, roomInformation];
-	}
+    this.roomList = [...this.roomList, roomInformation];
+  }
 
-	deleteRoom(roomId, user) {
-		let findChatRoom = this._findChatRoom(roomId);
-		if (user.id !== findChatRoom.admin.id) {
-			return console.log('방장만 방을 삭제할 수 있습니다.');
-		}
-		this.roomList = this.roomList.filter((room) => room.roomId !== roomId);
-	}
+  deleteRoom(roomId, user) {
+    let findChatRoom = this._findChatRoom(roomId);
+    if (user.id !== findChatRoom.admin.id) {
+      return console.log('방장만 방을 삭제할 수 있습니다.');
+    }
+    this.roomList = this.roomList.filter((room) => room.roomId !== roomId);
+  }
 
-	joinRoom(roomId, user, ...args) {
-		const userPassword = args[0];
-		let findChatRoom = this._findChatRoom(roomId);
-		if (!findChatRoom) {
-			return console.log('존재하지 않는 방입니다.');
-		} else if (this.isPrivate) {
-			if (this.#password === userPassword) {
-				findChatRoom.joinedUserList = [...findChatRoom.joinedUserList, user];
-			} else {
-				return console.log('비밀번호를 잘못 입력하셨습니다. ');
-			}
-		}
-	}
+  joinRoom(roomId, user, ...args) {
+    const userPassword = args[0];
+    let findChatRoom = this._findChatRoom(roomId);
+    if (!findChatRoom) {
+      return console.log('존재하지 않는 방입니다.');
+    } else if (this.isPrivate) {
+      if (this.#password === userPassword) {
+        findChatRoom.joinedUserList = [...findChatRoom.joinedUserList, user];
+      } else {
+        return console.log('비밀번호를 잘못 입력하셨습니다. ');
+      }
+    }
+  }
 
-	exitRoom(roomId, user) {
-		let findChatRoom = this._findChatRoom(roomId);
-		findChatRoom.joinedUserList = findChatRoom.joinedUserList.filter((_user) => _user.id !== user.id);
-	}
+  exitRoom(roomId, user) {
+    let findChatRoom = this._findChatRoom(roomId);
+    findChatRoom.joinedUserList = findChatRoom.joinedUserList.filter(
+      (_user) => _user.id !== user.id
+    );
+  }
 
-	changeToPrivat(user, password) {
-		this.isPrivate = true;
-		this.#password = password;
-	}
+  changeToPrivat(user, password) {
+    this.isPrivate = true;
+    this.#password = password;
+  }
 
-	kickout(roomId, user, targetUser) {
-		let findChatRoom = this._findChatRoom(roomId);
-		if (findChatRoom.admin.id !== user.id) {
-			return console.log('방장만 사용 가능합니다.');
-		}
-		findChatRoom.joinedUserList = findChatRoom.joinedUserList.filter((_user) => _user.id !== targetUser.id);
-	}
+  kickout(roomId, user, targetUser) {
+    let findChatRoom = this._findChatRoom(roomId);
+    if (findChatRoom.admin.id !== user.id) {
+      return console.log('방장만 사용 가능합니다.');
+    }
+    findChatRoom.joinedUserList = findChatRoom.joinedUserList.filter(
+      (_user) => _user.id !== targetUser.id
+    );
+  }
 
-	blockUser(roomId, user, targetUser) {
-		let findChatRoom = this._findChatRoom(roomId);
-		if (findChatRoom.admin.id !== user.id) {
-			return console.log('방장만 사용 가능합니다.');
-		}
+  blockUser(roomId, user, targetUser) {
+    let findChatRoom = this._findChatRoom(roomId);
+    if (findChatRoom.admin.id !== user.id) {
+      return console.log('방장만 사용 가능합니다.');
+    }
 
-		findChatRoom.joinedUserList = findChatRoom.joinedUserList.map((_user) => {
-			if (_user.id === targetUser.id) {
-				return { ..._user, isBlock: !_user.isBlock };
-			} else {
-				return user;
-			}
-		});
-	}
+    findChatRoom.joinedUserList = findChatRoom.joinedUserList.map((_user) => {
+      if (_user.id === targetUser.id) {
+        return { ..._user, isBlock: !_user.isBlock };
+      } else {
+        return user;
+      }
+    });
+  }
 
-	chat(roomId, user, message) {
-		let findChatRoom = this._findChatRoom(roomId);
-		let findUserInChatRoom = this._findUserInChatRoom(findChatRoom, user);
-		if (!findUserInChatRoom) {
-			return console.log('방에 입장하지 않으셨습니다.');
-		} else if (findUserInChatRoom.isBlock) {
-			return;
-		}
+  chat(roomId, user, message) {
+    let findChatRoom = this._findChatRoom(roomId);
+    let findUserInChatRoom = this._findUserInChatRoom(findChatRoom, user);
+    if (!findUserInChatRoom) {
+      return console.log('방에 입장하지 않으셨습니다.');
+    } else if (findUserInChatRoom.isBlock) {
+      return;
+    }
 
-		const messageInformation = {
-			user: findUserInChatRoom,
-			message,
-		};
-		findChatRoom.messageList = [...findChatRoom.messageList, messageInformation];
-	}
+    const messageInformation = {
+      user: findUserInChatRoom,
+      message,
+    };
+    findChatRoom.messageList = [
+      ...findChatRoom.messageList,
+      messageInformation,
+    ];
+  }
 
-	_findChatRoom(roomId) {
-		return this.roomList.find((room) => room.roomId === roomId);
-	}
+  _findChatRoom(roomId) {
+    return this.roomList.find((room) => room.roomId === roomId);
+  }
 
-	_findUserInChatRoom(findChatRoom, user) {
-		return findChatRoom.joinedUserList.find((_user) => _user.id === user.id);
-	}
+  _findUserInChatRoom(findChatRoom, user) {
+    return findChatRoom.joinedUserList.find((_user) => _user.id === user.id);
+  }
 }
 
 // const myAccount = {
